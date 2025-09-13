@@ -14,7 +14,7 @@ public class TelegramBotConfiguration {
 
     @Bean
     public TelegramBotsApi telegramBotsApi() throws Exception {
-        TelegramBotsApi botsApi =new TelegramBotsApi(DefaultBotSession.class);
+        TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
         botsApi.registerBot(telegramBot);
         return botsApi;
     }
