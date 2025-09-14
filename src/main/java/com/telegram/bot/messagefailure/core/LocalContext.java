@@ -3,10 +3,10 @@ package com.telegram.bot.messagefailure.core;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TelegramLocalContext {
+public class LocalContext {
     private final Map<String, Object> context;
 
-    public TelegramLocalContext(){
+    public LocalContext(){
         context = new HashMap<>();
     }
 

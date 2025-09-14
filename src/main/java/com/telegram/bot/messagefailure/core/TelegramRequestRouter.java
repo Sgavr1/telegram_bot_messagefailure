@@ -1,6 +1,5 @@
 package com.telegram.bot.messagefailure.core;
 
-import com.telegram.bot.messagefailure.callback.Login;
 import com.telegram.bot.messagefailure.core.annotation.CallbackRequest;
 import com.telegram.bot.messagefailure.core.annotation.MessageRequest;
 import com.telegram.bot.messagefailure.core.annotation.TelegramController;
@@ -9,6 +8,7 @@ import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ClassInfoList;
 import io.github.classgraph.ScanResult;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -17,11 +17,11 @@ import java.util.Map;
 
 @Component
 public class TelegramRequestRouter {
-    private final TelegramContext context;
+    private final Context context;
     private final Map<String, Method> callbackResponseMetchod;
     private final Map<String, Method> messageResponseMetchod;
 
-    public TelegramRequestRouter(TelegramContext context) {
+    public TelegramRequestRouter(Context context) {
         this.context = context;
         callbackResponseMetchod = new HashMap<>();
         messageResponseMetchod = new HashMap<>();
@@ -56,5 +56,9 @@ public class TelegramRequestRouter {
                 }
             }
         }
+    }
+
+    public SendMessage routed(String url) {
+        return null;
     }
 }
