@@ -5,6 +5,8 @@ import com.telegram.bot.messagefailure.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -40,11 +42,8 @@ public class TelegramBot extends TelegramLongPollingBot {
             user = userService.addUnauthorizedUser(id);
             user.setLastCallback("");
         }
-        try {
-            execute(router.routed(update, user));
-        } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
-        }
+
+        sendMessage(router.routed(update, user));
     }
 
     public long getChatId(Update update) {
@@ -55,5 +54,13 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
 
         throw new NoSuchElementException(update.toString() + "update haven`t callbackQuery or message");
+    }
+
+    public Message sendMessage(SendMessage message){
+        try {
+            return execute(message);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
