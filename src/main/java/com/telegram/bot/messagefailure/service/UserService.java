@@ -55,19 +55,20 @@ public class UserService {
 
     public UnauthorizedUser addUnauthorizedUser(long id) {
         UnauthorizedUser user = new UnauthorizedUser(id);
+        user.setLastCallback("");
         users.put(id, user);
         return user;
     }
 
-    public AuthorizedUser authorizedUser(long id) {
-        UnauthorizedUser unauthorizedUser = getUnauthorizedUser(id);
+    public AuthorizedUser authorizedUser(UnauthorizedUser unauthorizedUser) {
         if (unauthorizedUser != null) {
             String password = unauthorizedUser.getPassword();
             String login = unauthorizedUser.getLogin();
             for (UserInfo info : userInfos) {
                 if(info.getLogin().equals(login) && info.getPassword().equals(password)){
-                    AuthorizedUser authorizedUser = new AuthorizedUser(id, info);
-                    users.put(id, authorizedUser);
+                    AuthorizedUser authorizedUser = new AuthorizedUser(unauthorizedUser.getId(), info);
+                    authorizedUser.setLastCallback(unauthorizedUser.getLastCallback());
+                    users.put(unauthorizedUser.getId(), authorizedUser);
                     return authorizedUser;
                 }
             }

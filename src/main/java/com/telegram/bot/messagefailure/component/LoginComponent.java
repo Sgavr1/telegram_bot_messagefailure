@@ -41,4 +41,36 @@ public class LoginComponent {
 
         return markup;
     }
+
+    public static InlineKeyboardMarkup getSetLoginButton(){
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        markup.setKeyboard(rows);
+
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        row.add(InlineKeyboardButton.builder()
+                .text("Логин")
+                .callbackData("set_login")
+                .build());
+
+        rows.add(row);
+
+        return markup;
+    }
+
+    public static InlineKeyboardMarkup getSetPasswordButton(){
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+        markup.setKeyboard(rows);
+
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        row.add(InlineKeyboardButton.builder()
+                .text("Пароль")
+                .callbackData("set_password")
+                .build());
+
+        rows.add(row);
+
+        return markup;
+    }
 }

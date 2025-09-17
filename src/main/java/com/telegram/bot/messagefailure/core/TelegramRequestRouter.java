@@ -3,28 +3,30 @@ package com.telegram.bot.messagefailure.core;
 import com.telegram.bot.messagefailure.core.annotation.CallbackRequest;
 import com.telegram.bot.messagefailure.core.annotation.MessageRequest;
 import com.telegram.bot.messagefailure.core.annotation.TelegramController;
+import com.telegram.bot.messagefailure.entity.user.AuthorizedUser;
+import com.telegram.bot.messagefailure.entity.user.TelegramBotUser;
+import com.telegram.bot.messagefailure.entity.user.UnauthorizedUser;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ClassInfoList;
 import io.github.classgraph.ScanResult;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class TelegramRequestRouter {
-    private final Context context;
     private final Map<String, Method> callbackResponseMetchod;
-    private final Map<String, Method> messageResponseMetchod;
+    private final ConfigurableApplicationContext context;
 
-    public TelegramRequestRouter(Context context) {
-        this.context = context;
+    public TelegramRequestRouter(ConfigurableApplicationContext context) {
         callbackResponseMetchod = new HashMap<>();
-        messageResponseMetchod = new HashMap<>();
+        this.context = context;
 
         scanTelegramController();
     }
@@ -36,14 +38,6 @@ public class TelegramRequestRouter {
                 .scan()) {
             ClassInfoList classInfoList = scanResult.getClassesWithAnnotation(TelegramController.class);
             for (ClassInfo classInfo : classInfoList) {
-                try {
-                    Object object = classInfo.loadClass().getDeclaredConstructor().newInstance();
-                    String key = classInfo.loadClass().getName();
-                    context.add(key, object);
-                } catch (InstantiationException | NoSuchMethodException | InvocationTargetException |
-                         IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
                 for (Method m : classInfo.loadClass().getMethods()) {
                     CallbackRequest callbackRequest = m.getAnnotation(CallbackRequest.class);
                     if (callbackRequest != null) {
@@ -51,14 +45,43 @@ public class TelegramRequestRouter {
                     }
                     MessageRequest messageRequest = m.getAnnotation(MessageRequest.class);
                     if (messageRequest != null) {
-                        messageResponseMetchod.put(messageRequest.response(), m);
+                        callbackResponseMetchod.put(messageRequest.response() + "/", m);
                     }
                 }
             }
         }
     }
 
-    public SendMessage routed(String url) {
-        return null;
+    public SendMessage routed(Update update, TelegramBotUser user) {
+        Method m;
+        if (update.hasCallbackQuery()) {
+            m = callbackResponseMetchod.get(update.getCallbackQuery().getData());
+        } else {
+            m = callbackResponseMetchod.get(user.getLastCallback() + "/");
+        }
+
+        try {
+            Object o = context.getBean(m.getDeclaringClass());
+            return (SendMessage) m.invoke(o, getInstanceParameters(m, update, user));
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Object[] getInstanceParameters(Method m, Update update, TelegramBotUser user) {
+        List<Object> parameters = new ArrayList<>();
+        for (Class<?> clazz : m.getParameterTypes()) {
+            if (clazz == Update.class) {
+                parameters.add(update);
+            } else if (clazz == String.class) {
+                parameters.add(update.getMessage().getText());
+            } else if (clazz == UnauthorizedUser.class || clazz == AuthorizedUser.class || clazz == TelegramBotUser.class) {
+                parameters.add(user);
+            } else {
+                parameters.add(context.getBean(clazz));
+            }
+        }
+
+        return parameters.toArray();
     }
 }
