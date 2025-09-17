@@ -1,6 +1,7 @@
 package com.telegram.bot.messagefailure.entity.user;
 
 public class UserInfo {
+    private int id;
     private String firstName;
     private String lastName;
     private String role;
@@ -11,12 +12,21 @@ public class UserInfo {
 
     }
 
-    public UserInfo(String firstName, String lastName, String role, String login, String password) {
+    public UserInfo(int id, String firstName, String lastName, String role, String login, String password) {
+        this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.role = role;
         this.login = login;
         this.password = password;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getFirstName() {

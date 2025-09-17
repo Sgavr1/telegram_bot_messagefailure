@@ -22,9 +22,9 @@ public class UserService {
 
         //Test data
         userInfos = new ArrayList<>();
-        userInfos.add(new UserInfo("Коля", "Коля", "TL", "TL", "1234"));
-        userInfos.add(new UserInfo("Олкусвндр", "Гаврилко", "OP", "OP", "1234"));
-        userInfos.add(new UserInfo("Леша", "Леша", "S", "S", "1234"));
+        userInfos.add(new UserInfo(1, "Коля", "Коля", "TL", "TL", "1234"));
+        userInfos.add(new UserInfo(2, "Олександр", "Гаврилко", "OP", "OP", "1234"));
+        userInfos.add(new UserInfo(3, "Леша", "Леша", "B", "B", "1234"));
     }
 
     public TelegramBotUser get(long id) {
@@ -65,10 +65,22 @@ public class UserService {
             String password = unauthorizedUser.getPassword();
             String login = unauthorizedUser.getLogin();
             for (UserInfo info : userInfos) {
-                if(info.getLogin().equals(login) && info.getPassword().equals(password)){
+                if (info.getLogin().equals(login) && info.getPassword().equals(password)) {
                     AuthorizedUser authorizedUser = new AuthorizedUser(unauthorizedUser.getId(), info);
                     authorizedUser.setLastCallback(unauthorizedUser.getLastCallback());
                     users.put(unauthorizedUser.getId(), authorizedUser);
+                    return authorizedUser;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public AuthorizedUser getTeamLeader() {
+        for (TelegramBotUser user : users.values()) {
+            if(user instanceof AuthorizedUser authorizedUser){
+                if(authorizedUser.getInfo().getRole().equals("TL")){
                     return authorizedUser;
                 }
             }

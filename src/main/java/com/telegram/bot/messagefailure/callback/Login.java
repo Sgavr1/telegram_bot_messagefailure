@@ -8,14 +8,14 @@ import com.telegram.bot.messagefailure.entity.user.AuthorizedUser;
 import com.telegram.bot.messagefailure.entity.user.TelegramBotUser;
 import com.telegram.bot.messagefailure.entity.user.UnauthorizedUser;
 import com.telegram.bot.messagefailure.service.UserService;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
-@Component
+@Controller
 @TelegramController
 public class Login {
     @MessageRequest()
-    public SendMessage responseUnauthorizedUser(TelegramBotUser user) {
+    public SendMessage startLogin(TelegramBotUser user) {
         SendMessage message = new SendMessage();
         message.setChatId(user.getId());
         message.setText("Вы не авторизировани");
@@ -24,20 +24,25 @@ public class Login {
     }
 
     @CallbackRequest(callback = "login")
-    public SendMessage login(UnauthorizedUser user, UserService service) {
+    public SendMessage login(UnauthorizedUser user, UserService service, Operator operator, TeamLeader teamLeader) {
         SendMessage message = new SendMessage();
         message.setChatId(user.getId());
 
-        if (!user.getLogin().isEmpty() || !user.getPassword().isEmpty()) {
+        if (!user.getLogin().isEmpty() && !user.getPassword().isEmpty()) {
             AuthorizedUser authorizedUser = service.authorizedUser(user);
             if (authorizedUser != null) {
-                message.setText("Вход успешен");
+                if (authorizedUser.getInfo().getRole().equals("OP")) {
+                    return operator.startOperator(authorizedUser);
+                } else if (authorizedUser.getInfo().getRole().equals("TL")) {
+                    return teamLeader.startTeamLeader(authorizedUser);
+                } else {
+                    return null;
+                }
             }
         }
-        else {
-            message.setText("Введите логин и пароль");
-            message.setReplyMarkup(LoginComponent.getLoginPasswordInlineButton());
-        }
+
+        message.setText("Введите логин и пароль");
+        message.setReplyMarkup(LoginComponent.getLoginPasswordInlineButton());
 
         return message;
     }
@@ -69,7 +74,7 @@ public class Login {
         user.setLogin(login);
         user.setLastCallback("");
 
-        if (!user.getLogin().isEmpty() || !user.getPassword().isEmpty()) {
+        if (!user.getLogin().isEmpty() && !user.getPassword().isEmpty()) {
             message.setReplyMarkup(LoginComponent.getLoginButton());
         } else {
             message.setReplyMarkup(LoginComponent.getSetPasswordButton());
@@ -84,10 +89,10 @@ public class Login {
         message.setChatId(user.getId());
         message.setText("Пароль успешно введен");
 
-        user.setLogin(password);
+        user.setPassword(password);
         user.setLastCallback("");
 
-        if (!user.getLogin().isEmpty() || !user.getPassword().isEmpty()) {
+        if (!user.getLogin().isEmpty() && !user.getPassword().isEmpty()) {
             message.setReplyMarkup(LoginComponent.getLoginButton());
         } else {
             message.setReplyMarkup(LoginComponent.getSetLoginButton());

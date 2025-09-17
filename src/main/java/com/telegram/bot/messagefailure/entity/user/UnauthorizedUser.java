@@ -6,6 +6,8 @@ public class UnauthorizedUser extends TelegramBotUser {
 
     public UnauthorizedUser(long id) {
         super(id);
+        login = "";
+        password = "";
     }
 
     public String getLogin() {
